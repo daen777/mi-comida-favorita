@@ -7,7 +7,6 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Text } from 'react-native';
 
-
 export default function HomeScreen({ navigation }) {
   const [profile, setProfile] = useState({});
   const [image, setImage] = useState(null);
@@ -68,6 +67,12 @@ export default function HomeScreen({ navigation }) {
           <Text>No hay imagen de perfil</Text>
         </View>
       )}
+      <Text style={styles.text}>
+        <Text style={styles.label}>Nombre:</Text> {profile.displayName || 'No especificado'}
+      </Text>
+      <Text style={styles.text}>
+        <Text style={styles.label}>Comida Favorita:</Text> {profile.comidaFavorita || 'No especificada'}
+      </Text>
       <Button title="Seleccionar Imagen" onPress={handleImagePick} />
       <Button title="Cerrar Sesión" onPress={() => auth.signOut()} />
     </View>
@@ -95,4 +100,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  text: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  label: {
+    fontWeight: 'bold',
+  },
 });
+
