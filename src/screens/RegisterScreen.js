@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Input, Button, Text } from 'react-native-elements';
-import { auth } from '../config/firebase';
+import { auth, db, storage } from '../config/firebase'; // Importa la base de datos y storage
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore'; // Importa setDoc y doc para Firestore
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../config/firebase';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [comidaFavorita, setComidaFavorita] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [imageUri, setImageUri] = useState(null);
 
-  // Validación de Contraseña segun pedido
   const validatePassword = (password) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
     return regex.test(password);
   };
 
-  // Validación del formulario
   const validateForm = () => {
     let errors = {};
     if (!email) errors.email = 'El email es requerido';
@@ -40,6 +39,7 @@ export default function RegisterScreen({ navigation }) {
     }
 
     if (!name) errors.name = 'El nombre es requerido';
+    if (!comidaFavorita) errors.comidaFavorita = 'La comida favorita es requerida';
 
     return errors;
   };
@@ -58,7 +58,6 @@ export default function RegisterScreen({ navigation }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Subir la imagen de perfil a Firebase Storage (no se puede en el plan gratuito y saldra error)
       let photoURL = '';
       if (imageUri) {
         const response = await fetch(imageUri);
@@ -68,18 +67,27 @@ export default function RegisterScreen({ navigation }) {
         photoURL = await getDownloadURL(storageRef);
       }
 
-      // Actualizar el perfil del usuario (lanzara error porque no se puede en plan basico)
+      // Actualizar el perfil del usuario
       await updateProfile(user, { displayName: name, photoURL });
+
+      // Guardar datos en Firestore
+      await setDoc(doc(db, 'usuarios', user.uid), {
+        displayName: name,
+        comidaFavorita: comidaFavorita,
+        photoURL: photoURL || '',
+        email: user.email,
+        uid: user.uid,
+      });
 
       setIsLoading(false);
       navigation.replace('Home');
     } catch (error) {
+      console.error('Error en el registro:', error);
       setError({ general: error.message });
       setIsLoading(false);
     }
   };
 
-  // Seleccionar Imagen de la Galería
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -103,6 +111,12 @@ export default function RegisterScreen({ navigation }) {
         value={name}
         onChangeText={setName}
         errorMessage={error.name}
+      />
+      <Input
+        placeholder="Comida Favorita"
+        value={comidaFavorita}
+        onChangeText={setComidaFavorita}
+        errorMessage={error.comidaFavorita}
       />
       <Input
         placeholder="Email"
