@@ -9,8 +9,8 @@ const firebaseConfig = {
   projectId: "mi-comida-favorita-512fb",
   storageBucket: "mi-comida-favorita-512fb.firebasestorage.app",
   messagingSenderId: "418418755344",
-  appId: "1:418418755344:web:89edf596ee5cb5abee0795",
-  measurementId: "G-XFZV90HB6R"
+  appId: "1:418418755344:web:63d0d128188904f7ee0795",
+  measurementId: "G-546KKH91V3"
 };
 
 const app = initializeApp(firebaseConfig);
